@@ -1,0 +1,18 @@
+# 首次 `idf.py build` 时，这些选项会写进 sdkconfig（已存在 sdkconfig 时不会覆盖）。
+# 只放与本示例直接相关的配置，避免和你的开发板差异冲突。
+
+# 1 ms 的系统节拍：占空比扫描任务需要 10 ms 的精确周期，
+# 默认 100 Hz 节拍（10 ms/tick）会让 10 ms 的延时变成 1 或 2 个 tick。
+CONFIG_FREERTOS_HZ=1000
+
+# 日志等级 INFO：启动时会打印引脚表和各通道实际参数，方便对照逻辑分析仪。
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y
+
+# bit-bang 任务在 CPU1 上故意死循环（要展示"软件时序"的抖动），
+# CPU1 的 idle 任务因此长时间得不到调度。关掉 CPU1 idle 的看门狗监视，
+# 否则 Task WDT 每 5 秒打印一次超时告警（默认不会重启，但日志会一直被刷）。
+# CPU0 的 idle 监视保持打开：占空比扫描任务和时基任务都是正常阻塞的。
+CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU1=n
+
+# 若你的模组是 8 MB / 16 MB Flash，请自行执行 `idf.py menuconfig` 修改
+# Serial flasher config -> Flash size，本文件不写死，避免烧录参数不匹配。

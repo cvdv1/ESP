@@ -1,0 +1,7 @@
+# 构建产物
+build/
+managed_components/
+
+# idf.py 自动生成的本地配置（含你的 Flash/串口设置，不进版本库）
+sdkconfig
+sdkconfig.old
