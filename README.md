@@ -172,8 +172,8 @@ GPIO4/5/6/7/15/16/17/18 都是干净的普通 IO。
 ```bat
 :: 1) 加载 ESP-IDF 环境（每个新开的窗口都要做一次 export）
 cd /d E:\ESP\v5.3.5\esp-idf
-install.bat        :: 只需第一次：安装工具链（默认联网下载；本机有离线包，见下方提示）
 export.bat
+:: install.bat 只在"工具链没装过"时才需要跑一次（本机已装好，见 4.5）
 
 :: 2) 编译本工程
 cd /d E:\ESP\la-wave-demo
@@ -189,8 +189,7 @@ idf.py -p COM8 flash monitor
 ```powershell
 # 若提示"禁止运行脚本"，先执行一次：Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 cd E:\ESP\v5.3.5\esp-idf
-.\install.ps1      # 只需第一次
-.\export.ps1       # 每个新窗口一次
+.\export.ps1       # 每个新窗口一次（install.ps1 只需一次，本机已装好）
 cd E:\ESP\la-wave-demo
 idf.py set-target esp32s3
 idf.py build
@@ -251,6 +250,22 @@ host_check
 `wave_pins.h` 末尾还有一组**编译期断言**（`_Static_assert`）：分辨率超过 14 bit、频率超过 LEDC 上限、
 RMT 符号数超过内存块、时基偏移超过周期……这类改错会直接**编译失败**并打印中文原因，
 不用等烧进去在示波器前发呆。
+
+### 4.5 本机工具链位置（已装好）
+
+这台机器上的 ESP-IDF 工具链已经装好，**不用再跑 `install.bat`**，只要每个新终端 `export` 一次：
+
+| 内容 | 位置 |
+|---|---|
+| ESP-IDF 源码 | `E:\ESP\v5.3.5\esp-idf`（v5.3.5） |
+| 工具链根目录 | `C:\Users\liuzhen\.espressif`（默认 `IDF_TOOLS_PATH`） |
+| 编译器 | `.espressif\tools\xtensa-esp-elf\esp-13.2.0_20250707\xtensa-esp-elf\bin\xtensa-esp32s3-elf-gcc.exe` |
+| Python 环境 | `.espressif\python_env\idf5.3_py3.12_env` |
+| 已验证的构建 | `idf.py build` 通过（target `esp32s3`），固件 `build\la-wave-demo.bin` 约 264 KB，编译零警告 |
+
+这些工具是从本地的 `E:\ESP\archive_v5.3.5_windows-x64.zst` 离线包解出来的（`dist\` 里的官方压缩包 +
+`wheels_py312\` 里的 Python 轮子），**没有联网下载**。如果哪天要重装：把该离线包的 `dist` 解到
+`.espressif\dist`，再跑 `idf_tools.py install --targets=esp32s3` 和 `install-python-env`（配合 `PIP_FIND_LINKS`）。
 
 ---
 
@@ -524,7 +539,10 @@ la-wave-demo/
 
 **已经验证过的：**
 
-- 4 个源文件用宿主机 gcc（`-std=gnu17 -Wall -Wextra -Wformat=2`）做了语法/类型/格式串检查：
+- **真实编译通过**：ESP-IDF v5.3.5 + `xtensa-esp32s3-elf-gcc 13.2.0`，
+  `idf.py set-target esp32s3` + `idf.py build` 返回 0，4 个源文件**零警告**，
+  产物 `build\la-wave-demo.bin` 264 KB（app 分区剩余 74%）；
+- 4 个源文件另用宿主机 gcc（`-std=gnu17 -Wall -Wextra -Wformat=2`）做过语法/类型/格式串检查：
   检查用的桩头文件是按本机 `E:\ESP\v5.3.5\esp-idf` 里 LEDC / RMT / UART / SPI / GPIO 的**真实签名**
   写的，所以字段名、参数个数、枚举名与 IDF v5.3.5 对齐；
 - `wave_pins.h` 里的编译期断言全部成立；
@@ -534,9 +552,6 @@ la-wave-demo/
 
 **没有验证过的（重要）：**
 
-- **没有真正跑过 `idf.py build`**：本机只装了 ESP-IDF **源码**，没有 xtensa 工具链
-  （`~/.espressif` 不存在）。不过 `E:\ESP` 里有 v5.3.5 的离线安装包，装好工具链后即可编译；
-  首次编译若有报错（多半是拼写/包含路径级别），把 `idf.py build` 的日志发出来即可快速修掉；
 - **没有实物实测**：第六节的频率/占空比/脉宽都是"按参数应当测到"的期望值，不是实测记录。
   实测值与期望值不一致时，优先怀疑采样率设置与接线（见第五、八节），其次怀疑参数被改过。
 
