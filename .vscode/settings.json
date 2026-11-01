@@ -1,7 +1,8 @@
-﻿{
+{
     "idf.espIdfPath": "E:/ESP/v5.3.5/esp-idf",
     "idf.espIdfPathWin": "E:\\ESP\\v5.3.5\\esp-idf",
     "idf.toolsPathWin": "C:\\Users\\liuzhen\\.espressif",
     "idf.adapterTargetName": "esp32s3",
-    "idf.flashType": "UART"
+    "idf.flashType": "UART",
+    "idf.portWin": "COM11"
 }

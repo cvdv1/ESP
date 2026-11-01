@@ -120,7 +120,11 @@ static void sweep_task(void *arg)
         const uint32_t tri = (step < half) ? step : (PWM_SWEEP_STEPS - 1 - step);
         const uint32_t duty = s_duty_min + (span_max * tri) / (half - 1);
 
-        /* thread-safe 的"设置并立即更新"，避免两次调用之间出现半截波形 */
+        /*
+         * thread-safe 的"设置并立即更新"，避免两次调用之间出现半截波形。
+         * 注意：这个 API 依赖 LEDC 的 fade 服务，必须先调 ledc_fade_func_install()，
+         * 否则运行时会返回 ESP_FAIL 并打印 "Fade service not installed"（实测踩过）。
+         */
         ESP_ERROR_CHECK(ledc_set_duty_and_update(LEDC_MODE, LEDC_CHANNEL_1, duty, 0));
 
         step = (step + 1U) % PWM_SWEEP_STEPS;
@@ -132,6 +136,10 @@ void wave_ledc_init(void)
 {
     square_init();
     pwm_sweep_init();
+
+    /* ledc_set_duty_and_update() 依赖 fade 服务：不装就会在运行时返回 ESP_FAIL。
+       0 = 用默认中断优先级；只需装一次，卸载用 ledc_fade_func_uninstall()。 */
+    ESP_ERROR_CHECK(ledc_fade_func_install(0));
 
     /* 扫描任务放在 core 0，优先级低于突发任务；栈 3 KB 足够（只调驱动 API）。 */
     xTaskCreatePinnedToCore(sweep_task, "pwm_sweep", 3072, NULL, 4, NULL, 0);

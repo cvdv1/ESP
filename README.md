@@ -70,7 +70,10 @@ LEDC 是纯硬件计数器，核心公式：
 
 - 一个 **timer 只能有一个频率**：本工程 CH0 用 `LEDC_TIMER_0`，CH1 用 `LEDC_TIMER_1`；
 - 换频率后要重新算占空比计数值，否则占空比会跟着变；
-- 8 bit 时 **100% 占空比不可达**（最大 255/256 = 99.6%），这是 LEDC 的已知限制。
+- 8 bit 时 **100% 占空比不可达**（最大 255/256 = 99.6%），这是 LEDC 的已知限制；
+- `ledc_set_duty_and_update()` 属于 **fade 服务**的一部分，**必须先调 `ledc_fade_func_install(0)`**，
+  否则运行时会返回 `ESP_FAIL` 并打印 `Fade service not installed`（本工程第一次上板就踩了这个坑，
+  `ESP_ERROR_CHECK` 直接 abort → 板子反复重启）。
 
 ### 2.3 RMT —— 想输出任意波形就用它
 
@@ -264,7 +267,9 @@ RMT 符号数超过内存块、时基偏移超过周期……这类改错会直�
 | 工具链根目录 | `C:\Users\liuzhen\.espressif`（默认 `IDF_TOOLS_PATH`） |
 | 编译器 | `.espressif\tools\xtensa-esp-elf\esp-13.2.0_20250707\xtensa-esp-elf\bin\xtensa-esp32s3-elf-gcc.exe` |
 | Python 环境 | `.espressif\python_env\idf5.3_py3.12_env` |
-| 已验证的构建 | `idf.py build` 通过（target `esp32s3`），固件 `build\la-wave-demo.bin` 约 264 KB，编译零警告 |
+| 已验证的构建 | `idf.py build` 通过（target `esp32s3`），固件 `build\la-wave-demo.bin` 约 266 KB，编译零警告 |
+| 开发板 | 串口 **COM11**（板载 FTDI FT232，`VID_0403&PID_6001`），实测 **16 MB Flash** |
+| 已烧录并实测 | 固件已在板上运行，8 路全部初始化成功、无崩溃（见附录 E） |
 
 这些工具是从本地的 `E:\ESP\archive_v5.3.5_windows-x64.zst` 离线包解出来的（`dist\` 里的官方压缩包 +
 `wheels_py312\` 里的 Python 轮子），**没有联网下载**。如果哪天要重装：把该离线包的 `dist` 解到
@@ -494,6 +499,8 @@ RMT 符号数超过内存块、时基偏移超过周期……这类改错会直�
 | 触发不上 | 触发通道/边沿选错、SYNC 没接、用了自动模式 | CH7 + 上升沿 + 单次 |
 | UART 解出来是乱码 | 波特率/位序错，或接的是 UART0 控制台脚 | 确认接 GPIO15，参数按 7.1 |
 | 波形正常但任务看门狗打印告警 | CH3 死循环占满 CPU1 | 已由 `sdkconfig.defaults` 关闭 CPU1 idle 监视，见附录 B |
+| 串口反复打印 `Fade service not installed` / 板子不停重启 | 用了 `ledc_set_duty_and_update()` 但没装 fade 服务 | 调一次 `ledc_fade_func_install(0)`（本工程已修，见 2.2） |
+| 启动日志 `Detected size(16384k) larger than ... (2048k)` | 板子是 16 MB Flash，固件按 2 MB 编的 | 已把 `CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y` 写进 `sdkconfig.defaults` |
 | 烧录失败 | 串口被 monitor 占用 / 板子没进下载模式 | 关掉监视、按住 BOOT 再点复位 |
 
 ---
@@ -590,7 +597,9 @@ la-wave-demo/
 
 - **真实编译通过**：ESP-IDF v5.3.5 + `xtensa-esp32s3-elf-gcc 13.2.0`，
   `idf.py set-target esp32s3` + `idf.py build` 返回 0，4 个源文件**零警告**，
-  产物 `build\la-wave-demo.bin` 264 KB（app 分区剩余 74%）；
+  产物 `build\la-wave-demo.bin` 约 266 KB（app 分区剩余 74%）；
+- **已在真板子上运行**：烧录到 COM11（ESP32-S3，16 MB Flash）后，启动日志 8 路全部初始化成功，
+  `1000 Hz / 10000 Hz` 与驱动回报一致，连续运行无 panic、无重启（修掉 fade 服务那个 bug 之后）；
 - 4 个源文件另用宿主机 gcc（`-std=gnu17 -Wall -Wextra -Wformat=2`）做过语法/类型/格式串检查：
   检查用的桩头文件是按本机 `E:\ESP\v5.3.5\esp-idf` 里 LEDC / RMT / UART / SPI / GPIO 的**真实签名**
   写的，所以字段名、参数个数、枚举名与 IDF v5.3.5 对齐；

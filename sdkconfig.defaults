@@ -14,5 +14,8 @@ CONFIG_LOG_DEFAULT_LEVEL_INFO=y
 # CPU0 的 idle 监视保持打开：占空比扫描任务和时基任务都是正常阻塞的。
 CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU1=n
 
-# 若你的模组是 8 MB / 16 MB Flash，请自行执行 `idf.py menuconfig` 修改
-# Serial flasher config -> Flash size，本文件不写死，避免烧录参数不匹配。
+# 板子实测是 16 MB Flash（启动日志：spi_flash: Detected size(16384k)）。
+# 不写死的话默认 2 MB，会一直提示 "Detected size larger than the size in the binary image header"，
+# 而且 app 分区只能用 1 MB。显式声明 16 MB 后告警消失，分区表也能按需放大。
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="16MB"
