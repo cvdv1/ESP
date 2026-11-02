@@ -1,0 +1,2 @@
+﻿# 实测数据按二进制处理，避免 CRLF/LF 转换破坏内容
+docs/measurements/*.csv -text -diff

@@ -700,5 +700,25 @@ la-wave-demo/
 `tools/analyze_capture.py` 已随仓库提供，用法：
 
 ```bat
-python tools/analyze_capture.py digital.csv
+python tools/analyze_capture.py docs/measurements/digital.csv
 ```
+
+### 原始证据（`docs/measurements/`）
+
+| 文件 | 内容 |
+|---|---|
+| `digital.csv`（12.5 MB） | 采集原始数据：452,183 行、8 通道、634.88 ms |
+| `waveform_overview.png` | 100 ms 全览波形（上表所有通道一屏） |
+| `waveform_zoom.png` | 细节：RMT 簇时序、SPI 帧位流、UART 帧、周期抖动柱状图 |
+| `analysis_report.txt` | 上面这张表的逐项测量输出 |
+| `README.md` | 采集条件（固件提交、采样率、接线）与复现步骤 |
+
+重新生成图表：
+
+```bat
+python tools/render_measurements.py
+```
+
+> 注：`digital.csv` 是 12.5 MB 的一次性证据文件，已在 `.gitattributes` 里标记为二进制，
+> 避免换行符转换破坏数据；如果以后仓库体积敏感，可以改用 Git LFS 或只在本地保留。
+
