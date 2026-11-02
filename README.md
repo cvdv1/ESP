@@ -620,3 +620,22 @@ la-wave-demo/
 - 量到 **1 kHz / 50%** → 固件、时钟、引脚都正常，可以继续接其他通道；
 - 量不到 → 先解决基础问题（串口有没有 panic、探针夹的是不是 GPIO4），别急着接 8 根线。
 
+## 附录 F：仓库地址与多远端同步
+
+同一个仓库同时推到两个远端，内容（提交历史）保持一致：
+
+| 远端名 | 地址 | 协议 | 推送命令 |
+|---|---|---|---|
+| `origin` | <https://gitee.com/liu-hao-123456/esp> | SSH 22（`git@gitee.com:…`） | `git push origin master` |
+| `github` | <https://github.com/cvdv1/ESP> | **SSH over 443**（`ssh://git@ssh.github.com:443/cvdv1/ESP.git`） | `git push github master:main` |
+
+两个坑（都已绕过，记下来免得下次又踩）：
+
+- **GitHub 的 22 端口在这网络下被封**，`ssh.github.com` 的 **443** 可用，所以 `github` 远端用的是
+  `ssh://git@ssh.github.com:443/...` 形式；
+- 全局 `~/.gitconfig` 里有一条 `url."https://github.com/".insteadOf = git@github.com:`，
+  会把 `git@github.com:xxx` 改写成 HTTPS（于是变成要令牌），所以**不要**用 `git@github.com:` 形式，
+  用上面 `ssh://…:443` 的写法（不匹配那条重写规则）。
+- 日常同步：先 `git push origin master`，再 `git push github master:main`。
+
+
