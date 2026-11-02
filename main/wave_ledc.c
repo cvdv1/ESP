@@ -26,7 +26,7 @@ static uint32_t pct_to_duty(uint32_t pct, uint32_t max_count)
     return (pct * max_count + 50) / 100;
 }
 
-/* ---------- CH0：1 kHz / 50% 固定方波 ---------- */
+/* ---------- D0：1 kHz / 50% 固定方波 ---------- */
 static void square_init(void)
 {
     const uint32_t max_count = duty_max_count(SQUARE_DUTY_BITS);
@@ -51,12 +51,12 @@ static void square_init(void)
     };
     ESP_ERROR_CHECK(ledc_channel_config(&ch_cfg));
 
-    ESP_LOGI(TAG, "CH0 GPIO%d: target %d Hz, 50%% (%d bit), real %lu Hz",
+    ESP_LOGI(TAG, "D0 GPIO%d: target %d Hz, 50%% (%d bit), real %lu Hz",
              WAVE_PIN_SQUARE_1K, SQUARE_FREQ_HZ, SQUARE_DUTY_BITS,
              (unsigned long)ledc_get_freq(LEDC_MODE, LEDC_TIMER_0));
 }
 
-/* ---------- CH1：10 kHz 载波 + 占空比三角扫描 ---------- */
+/* ---------- D1：10 kHz 载波 + 占空比三角扫描 ---------- */
 static uint32_t s_duty_min; /* 10% 对应的计数值 */
 static uint32_t s_duty_max; /* 90% 对应的计数值 */
 
@@ -66,7 +66,7 @@ static void pwm_sweep_init(void)
     s_duty_min = pct_to_duty(PWM_DUTY_MIN_PCT, max_count);
     s_duty_max = pct_to_duty(PWM_DUTY_MAX_PCT, max_count);
 
-    /* 频率和 CH0 不同 → 必须用另一个 timer（LEDC_TIMER_1） */
+    /* 频率和 D0 不同 → 必须用另一个 timer（LEDC_TIMER_1） */
     const ledc_timer_config_t timer_cfg = {
         .speed_mode = LEDC_MODE,
         .duty_resolution = (ledc_timer_bit_t)PWM_DUTY_BITS,
@@ -87,7 +87,7 @@ static void pwm_sweep_init(void)
     };
     ESP_ERROR_CHECK(ledc_channel_config(&ch_cfg));
 
-    ESP_LOGI(TAG, "CH1 GPIO%d: target %d Hz (%d bit), duty %d%%..%d%% -> counts %lu..%lu, real %lu Hz",
+    ESP_LOGI(TAG, "D1 GPIO%d: target %d Hz (%d bit), duty %d%%..%d%% -> counts %lu..%lu, real %lu Hz",
              WAVE_PIN_PWM_SWEEP, PWM_FREQ_HZ, PWM_DUTY_BITS,
              PWM_DUTY_MIN_PCT, PWM_DUTY_MAX_PCT,
              (unsigned long)s_duty_min, (unsigned long)s_duty_max,

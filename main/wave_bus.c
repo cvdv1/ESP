@@ -35,7 +35,7 @@ static void uart_init(void)
        tx_buffer_size 非 0 → uart_write_bytes 拷进环形缓冲就返回，不阻塞任务。 */
     ESP_ERROR_CHECK(uart_driver_install(WAVE_UART_PORT, 256, 1024, 0, NULL, 0));
 
-    ESP_LOGI(TAG, "CH4 GPIO%d: UART%d TX, %d 8N1",
+    ESP_LOGI(TAG, "D4 GPIO%d: UART%d TX, %d 8N1",
              WAVE_PIN_UART_TX, UART_PORT_NUM, UART_BAUD_RATE);
 }
 
@@ -70,7 +70,7 @@ static void spi_init(void)
     };
     ESP_ERROR_CHECK(spi_bus_add_device(SPI2_HOST, &dev_cfg, &s_spi_dev));
 
-    ESP_LOGI(TAG, "CH5/CH6 GPIO%d(SCLK)/GPIO%d(MOSI): SPI2 mode0, %d Hz",
+    ESP_LOGI(TAG, "D5/D6 GPIO%d(SCLK)/GPIO%d(MOSI): SPI2 mode0, %d Hz",
              WAVE_PIN_SPI_SCLK, WAVE_PIN_SPI_MOSI, SPI_CLOCK_HZ);
 }
 

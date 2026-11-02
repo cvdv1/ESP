@@ -61,7 +61,7 @@ void wave_rmt_init(void)
 
     ESP_ERROR_CHECK(rmt_enable(s_chan));
 
-    ESP_LOGI(TAG, "CH2 GPIO%d: %d pulses, %d..%d us high, %d us gap, burst ~%lu us, res %lu Hz",
+    ESP_LOGI(TAG, "D2 GPIO%d: %d pulses, %d..%d us high, %d us gap, burst ~%lu us, res %lu Hz",
              WAVE_PIN_RMT_BURST, RMT_PULSE_NUM,
              RMT_FIRST_PULSE_US, RMT_FIRST_PULSE_US + (RMT_PULSE_NUM - 1) * RMT_STEP_US,
              RMT_GAP_US, (unsigned long)wave_rmt_burst_us(),
